@@ -59,6 +59,16 @@ async fn dec_to_hex(Json(hex_req): Json<Hexify>) -> Result<String, AppError> {
     Ok(hex_str)
 }
 
+#[derive(Deserialize)]
+struct Decify {
+    hex_value: String,
+}
+
+async fn hex_to_dec(Json(dec_rec): Json<Decify>) -> Result<String, AppError> {
+    let dec_str = hex_to_decimal(&dec_rec.hex_value)?;
+    Ok(dec_str)
+}
+
 fn decimal_to_hex(value: &str) -> Result<String, AppError> {
     let value = value.parse::<i64>()?;
     let value = format!("{:X}", value);
@@ -75,7 +85,8 @@ async fn main() -> shuttle_axum::ShuttleAxum {
     let router = Router::new()
         .route("/", get(hello_world))
         .route("/:name", get(hello_name))
-        .route("/hexify", post(dec_to_hex));
+        .route("/hexify", post(dec_to_hex))
+        .route("/decify", post(hex_to_dec));
 
     Ok(router.into())
 }
