@@ -80,13 +80,18 @@ fn hex_to_decimal(value: &str) -> Result<String, AppError> {
     Ok(value.to_string())
 }
 
+fn api_router() -> Router {
+    Router::new()
+        .route("/hexify", post(dec_to_hex))
+        .route("/decify", post(hex_to_dec))
+}
+
 #[shuttle_runtime::main]
 async fn main() -> shuttle_axum::ShuttleAxum {
     let router = Router::new()
+        .nest("/api", api_router())
         .route("/", get(hello_world))
-        .route("/:name", get(hello_name))
-        .route("/hexify", post(dec_to_hex))
-        .route("/decify", post(hex_to_dec));
+        .route("/:name", get(hello_name));
 
     Ok(router.into())
 }
