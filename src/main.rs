@@ -2,11 +2,45 @@ use std::error::Error;
 
 use axum::{
     extract::Path,
-    response::IntoResponse,
+    http::{status::InvalidStatusCode, StatusCode},
+    response::{IntoResponse, Response},
     routing::{get, post},
     Json, Router,
 };
 use serde::Deserialize;
+
+// Make our own error
+enum AppError {
+    ParseIntError(core::num::ParseIntError),
+}
+
+// Tell axum how to convert `AppError` into a response.
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!(
+                "Something went wrong: {}",
+                match self {
+                    Self::ParseIntError(err) => err,
+                }
+            ),
+        )
+            .into_response()
+    }
+}
+
+// This enables using `?` on functions that return `Result<_, anyhow::Error>` to turn them into
+// `Result<_, AppError>`. That way you don't need to do that manually.
+impl<E> From<E> for AppError
+where
+    E: Into<core::num::ParseIntError>,
+{
+    fn from(err: E) -> Self {
+        Self::ParseIntError(err.into())
+    }
+}
+
 async fn hello_world() -> &'static str {
     "Hello, world!"
 }
@@ -20,18 +54,18 @@ struct Hexify {
     dec_value: String,
 }
 
-async fn dec_to_hex(Json(hex_req): Json<Hexify>) -> Result<String, Box<dyn Error>> {
+async fn dec_to_hex(Json(hex_req): Json<Hexify>) -> Result<String, AppError> {
     let hex_str = decimal_to_hex(&hex_req.dec_value)?;
     Ok(hex_str)
 }
 
-fn decimal_to_hex(value: &str) -> Result<String, Box<dyn Error>> {
+fn decimal_to_hex(value: &str) -> Result<String, AppError> {
     let value = value.parse::<i64>()?;
     let value = format!("{:X}", value);
     Ok(value)
 }
 
-fn hex_to_decimal(value: &str) -> Result<String, Box<dyn Error>> {
+fn hex_to_decimal(value: &str) -> Result<String, AppError> {
     let value = i64::from_str_radix(value, 16)?;
     Ok(value.to_string())
 }
