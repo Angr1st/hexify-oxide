@@ -18,7 +18,7 @@ enum AppError {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         (
-            StatusCode::INTERNAL_SERVER_ERROR,
+            StatusCode::BAD_REQUEST,
             format!(
                 "Something went wrong: {}",
                 match self {
