@@ -1,8 +1,6 @@
-use std::error::Error;
-
 use axum::{
     extract::Path,
-    http::{status::InvalidStatusCode, StatusCode},
+    http::StatusCode,
     response::{IntoResponse, Response},
     routing::{get, post},
     Json, Router,
