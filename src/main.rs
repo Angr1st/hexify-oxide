@@ -7,7 +7,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 // Make our own error
 enum AppError {
@@ -39,6 +39,11 @@ where
     fn from(err: E) -> Self {
         Self::ParseIntError(err.into())
     }
+}
+
+#[derive(Serialize)]
+struct JsonError {
+    error: String,
 }
 
 async fn hello_world() -> &'static str {
@@ -80,10 +85,20 @@ fn hex_to_decimal(value: &str) -> Result<String, AppError> {
     Ok(value.to_string())
 }
 
+async fn api_fallback() -> (StatusCode, Json<JsonError>) {
+    (
+        StatusCode::NOT_FOUND,
+        Json(JsonError {
+            error: String::from("notFound"),
+        }),
+    )
+}
+
 fn api_router() -> Router {
     Router::new()
         .route("/hexify", post(dec_to_hex))
         .route("/decify", post(hex_to_dec))
+        .fallback(api_fallback)
 }
 
 #[shuttle_runtime::main]
