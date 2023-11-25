@@ -52,6 +52,14 @@ async fn hello_name(Path(name): Path<String>) -> impl IntoResponse {
     format!("Hello, {}!", name)
 }
 
+async fn styles() -> impl IntoResponse {
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "text/css")
+        .body(include_str!("../templates/styles.css").to_owned())
+        .expect("styles.css should be found!")
+}
+
 #[derive(Deserialize)]
 struct Hexify {
     dec_value: String,
@@ -99,9 +107,14 @@ fn api_router() -> Router {
         .fallback(api_fallback)
 }
 
+fn static_router() -> Router {
+    Router::new().route("/css/styles.css", get(styles))
+}
+
 #[shuttle_runtime::main]
 async fn main() -> shuttle_axum::ShuttleAxum {
     let router = Router::new()
+        .nest("/static", static_router())
         .nest("/api", api_router())
         .route("/", get(hello_world))
         .route("/:name", get(hello_name));
