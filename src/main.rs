@@ -1,3 +1,4 @@
+use askama::Template;
 use axum::{
     extract::Path,
     http::StatusCode,
@@ -44,12 +45,18 @@ struct JsonError {
     error: String,
 }
 
+#[derive(Template)]
+#[template(path = "index.html")]
+struct IndexTemplate {
+    name: String,
+}
+
 async fn hello_world() -> &'static str {
     "Hello, world!"
 }
 
 async fn hello_name(Path(name): Path<String>) -> impl IntoResponse {
-    format!("Hello, {}!", name)
+    IndexTemplate { name }
 }
 
 async fn styles() -> impl IntoResponse {
