@@ -51,8 +51,10 @@ struct IndexTemplate {
     name: String,
 }
 
-async fn hello_world() -> &'static str {
-    "Hello, world!"
+async fn hello_world() -> impl IntoResponse {
+    IndexTemplate {
+        name: String::from("world"),
+    }
 }
 
 async fn hello_name(Path(name): Path<String>) -> impl IntoResponse {
@@ -124,6 +126,7 @@ async fn main() -> shuttle_axum::ShuttleAxum {
         .nest("/static", static_router())
         .nest("/api", api_router())
         .route("/", get(hello_world))
+        .route("/index.html", get(hello_world))
         .route("/:name", get(hello_name));
 
     Ok(router.into())
