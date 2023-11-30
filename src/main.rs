@@ -69,6 +69,14 @@ async fn styles() -> impl IntoResponse {
         .expect("styles.css should be found!")
 }
 
+async fn htmx() -> impl IntoResponse {
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "text/javascript")
+        .body(include_str!("../templates/htmx.min.js").to_owned())
+        .expect("htmx.min.js should be found!")
+}
+
 #[derive(Deserialize)]
 struct Hexify {
     dec_value: String,
@@ -117,7 +125,9 @@ fn api_router() -> Router {
 }
 
 fn static_router() -> Router {
-    Router::new().route("/css/styles.css", get(styles))
+    Router::new()
+        .route("/css/styles.css", get(styles))
+        .route("/js/htmx.min.js", get(htmx))
 }
 
 #[shuttle_runtime::main]
