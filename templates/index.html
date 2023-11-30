@@ -6,7 +6,12 @@
   <p>Name: {{name}}</p>
 	</section>
 	<section class="main-section">
-		<p>Left</p>
+		<section>
+			<form id="hex-form">
+				<input placeholder="hex number..." required-type=text name="dec_value">
+				<button hx-post="api/hexify" hx-trigger="click" hx-ext="json-enc">Translate</button>
+			</form>
+		</section>
 		<p>Right</p>
 	</section>
 <!--<form id="add-form">
