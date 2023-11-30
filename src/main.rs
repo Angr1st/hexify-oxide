@@ -62,6 +62,17 @@ async fn hello_name(Path(name): Path<String>) -> impl IntoResponse {
     IndexTemplate { name }
 }
 
+#[derive(Template)]
+#[template(path = "hex-result.html")]
+struct HexResult {
+    value: String,
+}
+
+async fn hex_result(Json(hex_req): Json<Hexify>) -> Result<HexResult, AppError> {
+    let hex_str = decimal_to_hex(&hex_req.dec_value)?;
+    Ok(HexResult { value: hex_str })
+}
+
 #[derive(Deserialize)]
 struct Hexify {
     dec_value: String,
@@ -109,10 +120,15 @@ fn api_router() -> Router {
         .fallback(api_fallback)
 }
 
+fn html_router() -> Router {
+    Router::new().route("hexify", post(hex_result))
+}
+
 #[shuttle_runtime::main]
 async fn main() -> shuttle_axum::ShuttleAxum {
     let router = Router::new()
         .nest("/api", api_router())
+        .nest("/html/", html_router())
         .route("/", get(hello_world))
         .route("/index.html", get(hello_world))
         .route("/:name", get(hello_name))
