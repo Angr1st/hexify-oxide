@@ -7,6 +7,7 @@ use axum::{
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
+use tower_http::services::ServeDir;
 
 // Make our own error
 enum AppError {
@@ -61,22 +62,6 @@ async fn hello_name(Path(name): Path<String>) -> impl IntoResponse {
     IndexTemplate { name }
 }
 
-async fn styles() -> impl IntoResponse {
-    Response::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "text/css")
-        .body(include_str!("../templates/styles.css").to_owned())
-        .expect("styles.css should be found!")
-}
-
-async fn htmx() -> impl IntoResponse {
-    Response::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "text/javascript")
-        .body(include_str!("../templates/htmx.min.js").to_owned())
-        .expect("htmx.min.js should be found!")
-}
-
 #[derive(Deserialize)]
 struct Hexify {
     dec_value: String,
@@ -124,20 +109,14 @@ fn api_router() -> Router {
         .fallback(api_fallback)
 }
 
-fn static_router() -> Router {
-    Router::new()
-        .route("/css/styles.css", get(styles))
-        .route("/js/htmx.min.js", get(htmx))
-}
-
 #[shuttle_runtime::main]
 async fn main() -> shuttle_axum::ShuttleAxum {
     let router = Router::new()
-        .nest("/static", static_router())
         .nest("/api", api_router())
         .route("/", get(hello_world))
         .route("/index.html", get(hello_world))
-        .route("/:name", get(hello_name));
+        .route("/:name", get(hello_name))
+        .nest_service("/static", ServeDir::new("static/"));
 
     Ok(router.into())
 }
