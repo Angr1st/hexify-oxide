@@ -121,14 +121,14 @@ fn api_router() -> Router {
 }
 
 fn html_router() -> Router {
-    Router::new().route("hexify", post(hex_result))
+    Router::new().route("/hexify", post(hex_result))
 }
 
 #[shuttle_runtime::main]
 async fn main() -> shuttle_axum::ShuttleAxum {
     let router = Router::new()
         .nest("/api", api_router())
-        .nest("/html/", html_router())
+        .nest("/html", html_router())
         .route("/", get(hello_world))
         .route("/index.html", get(hello_world))
         .route("/:name", get(hello_name))
