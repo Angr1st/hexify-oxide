@@ -73,6 +73,17 @@ async fn hex_result(Json(hex_req): Json<Hexify>) -> Result<HexResult, AppError> 
     Ok(HexResult { value: hex_str })
 }
 
+#[derive(Template)]
+#[template(path = "dec-result.html")]
+struct DecResult {
+    value: String,
+}
+
+async fn dec_result(Json(dec_rec): Json<Decify>) -> Result<DecResult, AppError> {
+    let dec_str = hex_to_decimal(&dec_rec.hex_value)?;
+    Ok(DecResult { value: dec_str })
+}
+
 #[derive(Deserialize)]
 struct Hexify {
     dec_value: String,
@@ -121,7 +132,9 @@ fn api_router() -> Router {
 }
 
 fn html_router() -> Router {
-    Router::new().route("/hexify", post(hex_result))
+    Router::new()
+        .route("/hexify", post(hex_result))
+        .route("/decify", post(dec_result))
 }
 
 #[shuttle_runtime::main]
